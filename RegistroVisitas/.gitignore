@@ -1,0 +1,18 @@
+## Visual Studio
+.vs/
+bin/
+obj/
+
+## User-specific files
+*.user
+*.suo
+
+## App settings (NO subir secretos)
+appsettings.json
+appsettings.Development.json
+
+## EF
+*.db
+
+## Logs
+*.log

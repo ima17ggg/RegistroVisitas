@@ -1,0 +1,90 @@
+﻿@model Visitante
+
+<h2 class="mb-4">Registrar Visitante</h2>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="nombre" class="form-label">Nombre</label>
+            <input asp-for="nombre" class="form-control" placeholder="Nombre" />
+            <span asp-validation-for="nombre" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="apellido_p" class="form-label">Apellido Paterno</label>
+            <input asp-for="apellido_p" class="form-control" placeholder="Apellido Paterno" />
+            <span asp-validation-for="apellido_p" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="apellido_m" class="form-label">Apellido Materno</label>
+            <input asp-for="apellido_m" class="form-control" placeholder="Apellido Materno" />
+            <span asp-validation-for="apellido_m" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="correo" class="form-label">Correo</label>
+            <input asp-for="correo" class="form-control" placeholder="Correo" />
+            <span asp-validation-for="correo" class="text-danger"></span>
+        </div>
+
+        <div class="col-12">
+            <label asp-for="asunto" class="form-label">Asunto</label>
+            <input asp-for="asunto" class="form-control" placeholder="Motivo de la visita" />
+            <span asp-validation-for="asunto" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Compañía</label>
+            <select asp-for="id_compañia"
+                    asp-items="ViewBag.Compañias"
+                    id="selectCompania"
+                    class="form-select">
+                <option value="">-- Selecciona --</option>
+                <option value="0">Otra / Nueva compañía</option>
+            </select>
+            <span asp-validation-for="id_compañia" class="text-danger"></span>
+
+            <div id="nuevaCompaniaDiv" class="mt-2" style="display:none;">
+                <label for="NuevaCompania" class="form-label">Nueva compañía</label>
+                <input type="text" name="NuevaCompania" id="NuevaCompania" class="form-control" placeholder="Nombre de la nueva compañía" />
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Empleado a Visitar</label>
+            <select asp-for="id_empleado"
+                    asp-items="ViewBag.Empleados"
+                    class="form-select">
+                <option value="">-- Selecciona Empleado a Visitar --</option>
+            </select>
+            <span asp-validation-for="id_empleado" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Foto del visitante</label>
+            <input type="file" name="Foto" accept="image/*" class="form-control" />
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Registrar</button>
+        <a class="btn btn-outline-secondary" href="/Visitantes/index">Volver</a>
+    </div>
+</form>
+
+<script>
+    (function () {
+        const selectCompania = document.getElementById("selectCompania");
+        const nuevaCompaniaDiv = document.getElementById("nuevaCompaniaDiv");
+
+        function toggleNuevaCompania() {
+            nuevaCompaniaDiv.style.display = selectCompania.value === "0" ? "block" : "none";
+        }
+
+        selectCompania.addEventListener("change", toggleNuevaCompania);
+        toggleNuevaCompania();
+    })();
+</script>
