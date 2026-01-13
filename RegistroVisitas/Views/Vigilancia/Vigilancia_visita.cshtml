@@ -1,0 +1,245 @@
+﻿@model IEnumerable<RegistroVisitas.Models.ViewModels.VigilanciaViewModel>
+
+    <style>
+
+    /* Colores suaves para los Badges */
+.bg-success-soft { background-color: #e1fcef; color: #0d6832; }
+.bg-secondary-soft { background-color: #f3f4f6; color: #4b5563; }
+
+/* Estilo de la tabla */
+#vigilanciaTable thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #edf2f9;
+}
+
+.avatar-container {
+    width: 45px;
+    height: 45px;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8fbff;
+    transition: 0.2s ease-in-out;
+}
+
+/* Buscador */
+.search-box {
+    width: 300px;
+}
+
+/* Botón Salir mejorado */
+.buttonSalida {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1030;
+}
+
+.Salida {
+    background-color: #dc3545; /* Bootstrap danger */
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 999px; /* pill */
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.35);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.Salida:hover {
+    background-color: #c82333; /* darker danger */
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(200, 35, 51, 0.4);
+}
+
+.Salida:active {
+    background-color: #a71d2a;
+    transform: translateY(0);
+    box-shadow: 0 3px 8px rgba(167, 29, 42, 0.35);
+}
+
+.Salida:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.35);
+}
+</style>
+
+/* buscador */
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-secondary"><i class="fas fa-shield-alt me-2"></i>Panel de Control de Vigilancia</h2>
+        <div class="search-box">
+            <input type="text" id="tableSearch" class="form-control" placeholder="Buscar visitante o compañía...">
+        </div>
+    </div>
+    
+    /* Tabla de visitas */
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="vigilanciaTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Visitante</th>
+                            <th>Empresa / Asunto</th>
+                            <th>Persona Visitada</th>
+                            <th>Estado</th>
+                            <th>Horarios</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var v in Model)
+                        {
+                            bool estaDentro = v.fecha_salida == null;
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-container me-3">
+                                            @if (!string.IsNullOrEmpty(v.foto))
+                                            {
+                                                <img src="@v.foto" class="rounded-circle border" width="45" height="45" style="object-fit: cover;" alt="Foto" />
+                                            }
+                                            else
+                                            {
+                                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" width="45" height="45">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">@v.nombre @v.apellido_p</div>
+                                            <small class="text-muted">ID: #@v.id_visita</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">@v.compania</div>
+                                    <div class="badge bg-light text-dark border fw-normal">@v.asunto</div>
+                                </td>
+                                <td>
+                                    <div class="text-primary"><i class="fas fa-briefcase me-1 small"></i> @v.empleado</div>
+                                </td>
+                                <td>
+                                    @if (estaDentro)
+                                    {
+                                        <span class="badge rounded-pill bg-success-soft text-success border border-success">
+                                            <i class="fas fa-circle me-1 small"></i> En Planta
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-secondary-soft text-secondary">
+                                            <i class="fas fa-sign-out-alt me-1"></i> Finalizado
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="small">
+                                        <strong>Entrada:</strong> @v.fecha_entrada.ToString("HH:mm") <span class="text-muted small">(@v.fecha_entrada.ToString("dd/MM"))</span>
+                                    </div>
+                                    @if (!estaDentro && v.fecha_salida.HasValue)
+                                    {
+                                        <div class="small text-danger">
+                                            <strong>Salida:</strong> @v.fecha_salida.Value.ToString("HH:mm")
+                                        </div>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (estaDentro)
+                                    {
+                                        <form asp-action="RegistrarSalida" method="post" class="d-inline ms-2">
+                                            <input type="hidden" name="id_visita" value="@v.id_visita" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm px-3 shadow-sm rounded-pill">
+                                                Marcar Salida
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-light btn-sm disabled rounded-pill">Completo</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="buttonSalida">
+    <form asp-controller="Auth" asp-action="Logout" method="post">
+        <button type="submit" class="Salida">
+            <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
+        </button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('tableSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#vigilanciaTable tbody tr');
+
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().indexOf(value) > -1 ? '' : 'none';
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // 1. Buscador (Ya lo tienes, funciona bien)
+    document.getElementById('tableSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#vigilanciaTable tbody tr');
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().indexOf(value) > -1 ? '' : 'none';
+        });
+    });
+
+    // 2. Confirmación con SweetAlert2
+    document.querySelectorAll('.form-registrar-salida').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Detiene el envío automático
+
+            Swal.fire({
+                title: '¿Confirmar salida?',
+                text: "Se registrará la hora actual como salida del visitante.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, registrar salida',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit(); // Si confirma, envía el formulario
+                }
+            });
+        });
+    });
+</script>
+
+/* Estadísticas rápidas */
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="mb-0">En Planta</h6>
+                        <h2 class="mb-0 fw-bold">@Model.Count(x => x.fecha_salida == null)</h2>
+                    </div>
+                    <i class="fas fa-users fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

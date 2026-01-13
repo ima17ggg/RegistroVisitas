@@ -1,0 +1,23 @@
+@page
+@model RegistroVisitas.Pages.Auth.LoginModel
+
+<h2>Acceso Vigilancia</h2>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<form method="post">
+    <div>
+        <label>Usuario</label>
+        <input asp-for="Usuario" class="form-control" />
+    </div>
+
+    <div>
+        <label>Contraseña</label>
+        <input asp-for="Password" type="password" class="form-control" />
+    </div>
+
+    <button class="btn btn-primary mt-2">Entrar</button>
+</form>

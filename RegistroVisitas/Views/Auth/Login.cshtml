@@ -1,0 +1,21 @@
+﻿<h2>Acceso Vigilancia</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<form method="post">
+    <div>
+        <label>Usuario</label>
+        <input name="usuario" class="form-control" />
+    </div>
+
+    <div>
+        <label>Contraseña</label>
+        <input name="password" type="password" class="form-control" />
+    </div>
+
+    <button class="btn btn-primary mt-2">Entrar</button>
+</form>
+
