@@ -6,6 +6,7 @@
     [Table("Visita")]
     public class Visita
     {
+
         [Key]
         public int id_visita { get; set; }
 
@@ -14,5 +15,8 @@
 
         public DateTime fecha_entrada { get; set; }
         public DateTime? fecha_salida { get; set; }
+
+        [ForeignKey("id_visitante")]
+            public virtual Visitante Visitante { get; set; } = null!;
     }
 }

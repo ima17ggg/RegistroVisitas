@@ -10,7 +10,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // MVC para controladores/vistas
 builder.Services.AddControllersWithViews();
 
+//permitir inicio de sesion
+builder.Services.AddSession();
+
 var app = builder.Build();
+
+app.UseSession();
 
 if (!app.Environment.IsDevelopment())
 {

@@ -22,5 +22,13 @@
         public int? id_compañia { get; set; }
 
         public int? id_empleado { get; set; }
+
+        public ICollection<Visita> Visitas { get; set; } = new List<Visita>();
+
+        [ForeignKey("id_compañia")]
+        public Compañia? Compañia { get; set; }
+
+        [ForeignKey("id_empleado")]
+        public Empleado? Empleado { get; set; }
     }
 }
