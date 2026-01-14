@@ -15,7 +15,7 @@ namespace RegistroVisitas.Controllers
         public IActionResult Login(string usuario, string password)
         {
             // Credenciales simples (hardcodeadas)
-            if (usuario == "vigilancia" && password == "1234")
+            if (usuario == "vigilancia" && password == "admin1234")
             {
                 // Guardamos sesión
                 HttpContext.Session.SetString("Vigilancia", "true");

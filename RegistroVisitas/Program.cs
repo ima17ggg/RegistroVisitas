@@ -13,6 +13,8 @@ builder.Services.AddControllersWithViews();
 //permitir inicio de sesion
 builder.Services.AddSession();
 
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
+
 var app = builder.Build();
 
 app.UseSession();
