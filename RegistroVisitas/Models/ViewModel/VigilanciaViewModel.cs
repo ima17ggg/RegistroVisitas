@@ -18,6 +18,8 @@
         public DateTime fecha_entrada { get; set; }
 
         public DateTime? fecha_salida { get; set; }
-    }
+
+        public byte[]? QRCodeData { get; set; }
+        }
 }
 

@@ -9,18 +9,35 @@
         [Key]
         public int id_visitante { get; set; }
 
+        [Display(Name = "Nombre")]
         [Required]
         public string nombre { get; set; } = string.Empty;
 
+        [Display(Name = "Apellido paterno")]
+        [Required]
         public string apellido_p { get; set; } = string.Empty;
-        public string? apellido_m { get; set; }
-        public string? correo { get; set; }
-        public string? foto { get; set; }
-        public string? asunto { get; set; }
 
-        [Required(ErrorMessage = "Seleccione una compañía válida o ingrese una nueva.")]
+        [Display(Name = "Apellido materno")]
+        [Required]
+        public string apellido_m { get; set; } = string.Empty;
+
+        [Display(Name = "Correo")]
+        [Required]
+        public string correo { get; set; } = string.Empty;
+
+        [Display(Name = "Foto")]
+        [Required]
+        public string foto { get; set; } = string.Empty;
+
+        [Display(Name = "Asunto")]
+        [Required]
+        public string asunto { get; set; } = string.Empty;
+
+        [Display(Name = "Compañía")]
+        [Required]
         public int? id_compañia { get; set; }
 
+        [Display(Name = "Empleado")]
         public int? id_empleado { get; set; }
 
         public ICollection<Visita> Visitas { get; set; } = new List<Visita>();

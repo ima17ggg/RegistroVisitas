@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+ï»¿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -31,14 +31,14 @@ namespace RegistroVisitas.Pages.Auth
         {
             var expectedUser = _config["VigilanciaAuth:usuario"];
             var expectedPass = _config["VigilanciaAuth:password"];
-    
+
             if (Usuario == expectedUser && Password == expectedPass)
             {
-                // setear sesión/estado de auth si aplica
-                return RedirectToPage("/Vigilancia/Index");
+                // TODO: set auth state/session if needed
+                return RedirectToPage("/Index");
             }
 
-            Error = "Usuario o contraseña inválidos.";
+            Error = "Usuario o contraseÃ±a invÃ¡lidos.";
             return Page();
         }
 
@@ -52,4 +52,4 @@ namespace RegistroVisitas.Pages.Auth
             return RedirectToPage("/Auth/Login");
         }
     }
-}           
+}

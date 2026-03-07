@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using RegistroVisitas.Data;
 using RegistroVisitas.Models;
 
@@ -24,18 +25,8 @@ namespace RegistroVisitas.Controllers
 
         public IActionResult Create()
         {
-            ViewBag.Compañias = new SelectList(
-                _context.Companias,
-                "id_compañia",
-                "nombre"
-            );
-
-            ViewBag.Empleados = new SelectList(
-                _context.Empleados,
-                "id_empleado",
-                "nombre"
-            );
-
+            ViewBag.Compañias = new SelectList(_context.Companias, "id_compañia", "nombre");
+            ViewBag.Empleados = new SelectList(_context.Empleados, "id_empleado", "nombre");
             return View();
         }
 
@@ -43,82 +34,63 @@ namespace RegistroVisitas.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Visitante visitante, string? NuevaCompania, IFormFile? Foto)
         {
-                // Normaliza: trata null como 0
-                if (!visitante.id_compañia.HasValue) visitante.id_compañia = 0;
+            visitante.nombre = visitante.nombre?.Trim();
+            visitante.apellido_p = visitante.apellido_p?.Trim();
+            visitante.apellido_m = visitante.apellido_m?.Trim();
+            visitante.correo = visitante.correo?.Trim();
 
-                // Si es 0 y hay NuevaCompania, crea la compañía
-                if (visitante.id_compañia == 0 && !string.IsNullOrWhiteSpace(NuevaCompania))
+            using var tx = _context.Database.BeginTransaction();
+
+            try
+            {
+                // 1️ Buscar visitante existente
+                var visitanteDb = _context.Visitantes
+                    .FirstOrDefault(v => v.correo == visitante.correo);
+
+                int idVisitante;
+
+                if (visitanteDb != null)
                 {
-                    var compania = new Compañia { nombre = NuevaCompania.Trim() };
-                    _context.Companias.Add(compania);
+                    idVisitante = visitanteDb.id_visitante;
+                }
+                else
+                {
+                    _context.Visitantes.Add(visitante);
                     _context.SaveChanges();
-                    visitante.id_compañia = compania.id_compañia;
+                    idVisitante = visitante.id_visitante;
                 }
 
-                // Validación adicional: si después de todo queda <=0, error
-                if (!visitante.id_compañia.HasValue || visitante.id_compañia <= 0)
-                {
-                    ModelState.AddModelError("id_compañia", "Seleccione una compañía válida o ingrese el nombre de la nueva.");
-                }
+                // 2️ Validar visita activa
+                bool visitaActiva = _context.Visitas
+                    .Any(v => v.id_visitante == idVisitante && v.fecha_salida == null);
 
-                // Ahora valida ModelState
-                if (!ModelState.IsValid)
+                if (visitaActiva)
                 {
-                    ViewBag.Compañias = new SelectList(_context.Companias, "id_compañia", "nombre");
-                    ViewBag.Empleados = new SelectList(_context.Empleados, "id_empleado", "nombre");
+                    tx.Rollback();
+                    ModelState.AddModelError("", "Este visitante ya se encuentra dentro.");
                     return View(visitante);
                 }
 
-            // Validar ahora que ya se resolvió la compañía
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Compañias = new SelectList(_context.Companias, "id_compañia", "nombre");
-                ViewBag.Empleados = new SelectList(_context.Empleados, "id_empleado", "nombre");
-                return View(visitante);
-            }
-
-            if (!ModelState.IsValid) { /* ... */ }
-
-            // Manejo de foto
-            if (Foto != null && Foto.Length > 0)
-            {
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(Foto.FileName);
-                var uploadsFolder = Path.Combine(_hosting.WebRootPath, "images");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-                var filePath = Path.Combine(uploadsFolder, fileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                // 3️ Crear visita
+                var visita = new Visita
                 {
-                    Foto.CopyTo(stream);
-                }
-                visitante.foto = "/images/" + fileName;  // Guarda la ruta relativa
-            }
-
-            // Insertar visitante y visita en una sola unidad de trabajo
-            using var tx = _context.Database.BeginTransaction();
-            try
-            {
-                _context.Visitantes.Add(visitante);
-                _context.SaveChanges();
-
-                _context.Visitas.Add(new Visita
-                {
-                    id_visitante = visitante.id_visitante,
+                    id_visitante = idVisitante,
                     fecha_entrada = DateTime.Now
-                });
+                };
 
+                _context.Visitas.Add(visita);
                 _context.SaveChanges();
+
                 tx.Commit();
+                return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (DbUpdateException)
             {
                 tx.Rollback();
-                ViewBag.Compañias = new SelectList(_context.Companias, "id_compañia", "nombre");
-                ViewBag.Empleados = new SelectList(_context.Empleados, "id_empleado", "nombre");
-                ModelState.AddModelError(string.Empty, "Error al registrar el visitante.");
+                ModelState.AddModelError("", "Visitante duplicado detectado por la base de datos.");
                 return View(visitante);
             }
-
-            return RedirectToAction(nameof(Index));
         }
+
     }
 }

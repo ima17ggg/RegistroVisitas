@@ -1,6 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using RegistroVisitas.Data;
+using RegistroVisitas.Models;
 using RegistroVisitas.Models.ViewModels;
 
 namespace RegistroVisitas.Controllers
@@ -20,11 +25,17 @@ namespace RegistroVisitas.Controllers
             if (HttpContext.Session.GetString("Vigilancia") != "true")
                 return RedirectToAction("Login", "Auth");
 
+            var hoy = DateTime.Today;
+            var mañana = hoy.AddDays(1);
+
             var visitantesActivos = _context.Visitas
                 .Include(v => v.Visitante)
                     .ThenInclude(v => v.Compañia)
                 .Include(v => v.Visitante)
                     .ThenInclude(v => v.Empleado)
+                .Where(v => 
+                    v.fecha_entrada >= hoy && 
+                    v.fecha_entrada < mañana)
                 .Select(v => new VigilanciaViewModel
                 {
                     id_visita = v.id_visita,
@@ -58,6 +69,47 @@ namespace RegistroVisitas.Controllers
                 _context.SaveChanges();
             }
             return RedirectToAction("Vigilancia_visita");
+        }
+
+        // Map this action to /Gafetes/GenerarGafete
+        [HttpGet("/Gafetes/GenerarGafete")]
+        public IActionResult generarGafete(int visitaID)
+        {
+            var visita = _context.Visitas
+                .Include(v => v.Visitante)
+                .ThenInclude(v => v.Compañia)
+                .FirstOrDefault(v => v.id_visita == visitaID && v.fecha_salida == null);
+
+            if (visita == null)
+            {
+                return NotFound("Visita no encontrada o ya ha salido.");
+            }
+
+            var QRgenerator = new QRCodeGenerator();
+            var QRdata = QRgenerator.CreateQrCode(
+                visita.id_visita.ToString(),
+                QRCodeGenerator.ECCLevel.Q);
+
+            var QRcode = new PngByteQRCode(QRdata);
+            byte[] qrBytes = QRcode.GetGraphic(20);
+
+            var model = new VigilanciaViewModel
+            {
+                nombre = visita.Visitante.nombre,
+                apellido_p = visita.Visitante.apellido_p,
+                apellido_m = visita.Visitante.apellido_m,
+                compania = visita.Visitante.Compañia?.nombre ?? "N/A",
+                foto = visita.Visitante.foto,
+                QRCodeData = qrBytes
+            };
+
+            // Use explicit view path to match Views\Gafetes\gafete.cshtml
+            return View("~/Views/Gafetes/gafete.cshtml", model);
+        }
+
+        public IActionResult ver_visitas_pasadas()
+        {
+            return RedirectToAction("VisitasPasadas", "visitasPasadas");
         }
 
         public IActionResult Salir()
